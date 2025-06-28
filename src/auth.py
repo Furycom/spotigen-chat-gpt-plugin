@@ -1,29 +1,34 @@
 # src/auth.py
-from urllib.parse import urlencode
+from urllib.parse import urlencode, quote
+import os, requests, time, json
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
-import requests, os, time, json
 
 router = APIRouter(tags=["auth"])
 
-CLIENT_ID      = os.getenv("CLIENT_ID")
-CLIENT_SECRET  = os.getenv("CLIENT_SECRET")
-REDIRECT_URI   = os.getenv("REDIRECT_URI") or "https://spotigen-chat-gpt-plugin-production.up.railway.app/callback"
-SCOPES         = "user-top-read playlist-modify-public playlist-modify-private"
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+REDIRECT_URI = os.getenv("REDIRECT_URI")
+if not REDIRECT_URI:
+    raise ValueError("REDIRECT_URI env var missing; set it in Railway and Spotify dashboard")
 
-TOKEN_FILE     = "/tmp/spotify_tokens.json"        # ← stockage simple côté serveur
+SCOPES = "user-top-read playlist-modify-public playlist-modify-private"
+TOKEN_FILE = "/tmp/spotify_tokens.json"
 
-# ---------- Outils internes --------------------------------------------------
+# ---------- Internal helpers -------------------------------------------------
 
 def _save_tokens(tokens: dict):
     tokens["expires_at"] = int(time.time()) + tokens["expires_in"] - 60
-    with open(TOKEN_FILE, "w") as f: json.dump(tokens, f)
+    with open(TOKEN_FILE, "w") as f:
+        json.dump(tokens, f)
+
 
 def _load_tokens() -> dict | None:
     if not os.path.exists(TOKEN_FILE):
         return None
     with open(TOKEN_FILE) as f:
         return json.load(f)
+
 
 def valid_access_token() -> str | None:
     tokens = _load_tokens()
@@ -32,7 +37,6 @@ def valid_access_token() -> str | None:
     if tokens["expires_at"] > time.time():
         return tokens["access_token"]
 
-    # → expiré : on rafraîchit
     r = requests.post(
         "https://accounts.spotify.com/api/token",
         data={
@@ -50,25 +54,24 @@ def valid_access_token() -> str | None:
         return new_tokens["access_token"]
     return None
 
-# ---------- Routes publiques -------------------------------------------------
+# ---------- Public routes ----------------------------------------------------
 
 @router.get("/login")
 def login():
-    """Redirige l’utilisateur vers la page d’autorisation Spotify."""
+    """Redirect user to Spotify authorization."""
     params = {
         "client_id": CLIENT_ID,
         "response_type": "code",
         "redirect_uri": REDIRECT_URI,
         "scope": SCOPES,
     }
-    return RedirectResponse(
-        url="https://accounts.spotify.com/authorize?" + urlencode(params)
-    )
+    query = urlencode(params, quote_via=quote, safe="")
+    return RedirectResponse("https://accounts.spotify.com/authorize?" + query)
 
 
 @router.get("/callback")
 def callback(code: str | None = None, error: str | None = None):
-    """Point de retour Spotify : échange le `code` contre des jetons."""
+    """Spotify redirect URI used to exchange the `code` for tokens."""
     if error:
         raise HTTPException(400, f"Spotify auth error: {error}")
 
@@ -93,7 +96,7 @@ def callback(code: str | None = None, error: str | None = None):
 
 @router.get("/refresh")
 def refresh():
-    """Forcé : rafraîchir le jeton d’accès avec le refresh_token."""
+    """Force refresh of the access token using the stored refresh token."""
     tok = _load_tokens()
     if not tok:
         raise HTTPException(400, "Pas de refresh_token enregistré.")
