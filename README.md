@@ -31,6 +31,11 @@ To integrate ChatGPT with Spotify API via OAuth, you have to set up a Spotify ap
 
 4. Accept the terms and conditions and click "Create".
 
+### 🔑 OAuth setup
+
+The **same** URL must appear both in Railway → Variables → `REDIRECT_URI`
+and in the Spotify Dashboard → Redirect URIs.
+
 ### Setup the plugin
 
 To install the required packages for this plugin, run the following command:

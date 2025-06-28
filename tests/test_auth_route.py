@@ -1,15 +1,10 @@
-import sys, types
-import os
-
+import os, sys, types, urllib.parse, re, importlib
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
     import httpx  # type: ignore
-except ModuleNotFoundError:  # fallback stub for offline envs
-    httpx = types.ModuleType('httpx')
-    sys.modules['httpx'] = httpx
-import pytest
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
-# Patch httpx.Client to support the deprecated `app` parameter used by Starlette
+except ModuleNotFoundError:
+    httpx = types.ModuleType("httpx")
+    sys.modules["httpx"] = httpx
 if hasattr(httpx, "ASGITransport"):
     _orig_init = httpx.Client.__init__
 
@@ -19,12 +14,21 @@ if hasattr(httpx, "ASGITransport"):
         _orig_init(self, *args, **kwargs)
 
     httpx.Client.__init__ = _patched_init  # type: ignore
-
 from fastapi.testclient import TestClient
-from api.index import app
 
-client = TestClient(app)
 
-def test_login_route_redirect():
-    response = client.get('/auth/login', allow_redirects=False)
-    assert response.status_code in (302, 307)
+def test_login_redirect(monkeypatch):
+    monkeypatch.setenv("CLIENT_ID", "dummy")
+    monkeypatch.setenv("REDIRECT_URI", "https://example.com/auth/callback")
+    import src.auth, api.index
+    importlib.reload(src.auth)
+    importlib.reload(api.index)
+    client = TestClient(api.index.app)
+    r = client.get("/auth/login", allow_redirects=False)
+    assert r.status_code in (302, 307)
+    loc = r.headers["location"]
+    parsed = urllib.parse.urlparse(loc)
+    qs = urllib.parse.parse_qs(parsed.query)
+    assert parsed.netloc == "accounts.spotify.com"
+    assert qs["redirect_uri"][0] == "https://example.com/auth/callback"
+    assert re.search(r"scope=[^&]*%20", parsed.query)
