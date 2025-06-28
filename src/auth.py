@@ -11,6 +11,7 @@ CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 REDIRECT_URI = os.getenv("REDIRECT_URI")
 if not REDIRECT_URI:
     raise ValueError("REDIRECT_URI env var missing; set it in Railway and Spotify dashboard")
+REDIRECT_URI = REDIRECT_URI.strip()
 
 SCOPES = "user-top-read playlist-modify-public playlist-modify-private"
 TOKEN_FILE = "/tmp/spotify_tokens.json"
