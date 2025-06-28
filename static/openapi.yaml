@@ -46,6 +46,33 @@ paths:
           content:
             application/json:
               schema: {}
+  "/login":
+    get:
+      summary: "OAuth Login"
+      operationId: "login_login_get"
+      responses:
+        307:
+          description: "Redirect to Spotify OAuth"
+  "/callback":
+    get:
+      summary: "OAuth Callback"
+      operationId: "callback_callback_get"
+      parameters:
+        - name: "code"
+          in: "query"
+          required: false
+          schema:
+            type: "string"
+      responses:
+        200:
+          description: "Auth success"
+  "/refresh":
+    get:
+      summary: "Refresh Access Token"
+      operationId: "refresh_refresh_get"
+      responses:
+        200:
+          description: "New access token"
   "/playlist":
     get:
       summary: "Get Playlist"
