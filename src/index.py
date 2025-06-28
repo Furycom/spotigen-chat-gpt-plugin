@@ -7,7 +7,6 @@ from fastapi.staticfiles import StaticFiles
 from src.dtos.api import TrackTitles, TrackURIs
 from src.utils import get_spotify_client
 from src.services.spotify import SpotifyClient
-from src.auth import router as auth_router
 
 app = FastAPI()
 
@@ -24,7 +23,6 @@ app.add_middleware(
 )
 
 app.mount("/static", StaticFiles(directory="static"), name="static")
-app.include_router(auth_router)
 
 # Welcome endpoint 
 
