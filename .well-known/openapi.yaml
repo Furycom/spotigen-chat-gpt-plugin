@@ -1,0 +1,126 @@
+openapi: 3.1.0
+info:
+  title: Spotigen API
+  version: "1.0.0"
+  description: API du plugin ChatGPT pour contrôler Spotify.
+
+servers:
+  - url: https://spotigen-chat-gpt-plugin-production.up.railway.app
+    description: Déploiement Railway (prod)
+
+paths:
+  /:
+    get:
+      summary: Healthcheck
+      operationId: index
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /login:
+    get:
+      summary: Démarre l’authentification Spotify
+      operationId: login
+      responses:
+        "307":
+          description: Redirection vers Spotify
+  /callback:
+    get:
+      summary: Callback OAuth Spotify
+      operationId: callback
+      parameters:
+        - in: query
+          name: code
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Jeton d’accès
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+  /top_tracks:
+    get:
+      summary: Titres les plus écoutés (long terme)
+      operationId: top_tracks
+      responses:
+        "200":
+          description: Liste de morceaux
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  top_tracks:
+                    type: array
+                    items:
+                      type: string
+  /create_playlist:
+    post:
+      summary: Crée une playlist
+      operationId: create_playlist
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlaylistRequest"
+      responses:
+        "200":
+          description: Playlist créée
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  playlist_id:
+                    type: string
+  /agent:
+    get:
+      summary: Proxy conversationnel simple
+      operationId: agent
+      parameters:
+        - in: query
+          name: msg
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Réponse agent
+          content:
+            application/json:
+              schema:
+                type: object
+
+components:
+  schemas:
+    PlaylistRequest:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+          default: ""
+        public:
+          type: boolean
+          default: true
+        track_uris:
+          type: array
+          items:
+            type: string
+          default: []
