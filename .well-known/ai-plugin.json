@@ -1,22 +1,25 @@
 {
-  "schema_version": "v1",
+  "schema_version": "v2",
   "name_for_human": "Spotigen",
-  "name_for_model": "spotigen",
-  "description_for_human": "Contrôle ton compte Spotify : titres favoris, création de playlists…",
-  "description_for_model": "Read user's top tracks and create playlists via Spotify Web API.",
+  "name_for_model": "Spotigen",
+  "description_for_model": "Spotigen crafts personalized music playlists based on a user's mood, daily experiences, or preferences. It enhances user-generated content with mood-congruent music and can create playlists from user's favorites.",
+  "description_for_human": "Spotigen is an AI DJ crafting playlists to match your mood or day, and enhancing your content with suitable music.",
   "auth": {
     "type": "oauth",
     "client_url": "https://accounts.spotify.com/authorize",
-    "scope": "user-top-read playlist-modify-public playlist-modify-private",
-    "authorization_url": "https://accounts.spotify.com/authorize",
+    "scope": "playlist-modify-public",
+    "authorization_url": "https://accounts.spotify.com/api/token",
     "authorization_content_type": "application/x-www-form-urlencoded",
-    "token_url": "https://accounts.spotify.com/api/token"
+    "verification_tokens": {
+      "openai": "4e1a207e8c504d369f8506ecddcbb216"
+    }
   },
   "api": {
     "type": "openapi",
-    "url": "https://your-railway-url/openapi.yaml"
+    "url": "https://spotigen.vercel.app/static/openapi.yaml",
+    "is_user_authenticated": true
   },
-  "logo_url": "https://your-railway-url/static/logo.png",
-  "contact_email": "you@example.com",
-  "legal_info_url": "https://your-railway-url/terms"
+  "logo_url": "https://spotigen.vercel.app/static/logo.png",
+  "contact_email": "railly.angelo@gmail.com",
+  "legal_info_url": "http://raillyhugo.com/legal"
 }
