@@ -1,0 +1,22 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "Spotigen",
+  "name_for_model": "spotigen",
+  "description_for_human": "Contrôle ton compte Spotify : titres favoris, création de playlists…",
+  "description_for_model": "Read user's top tracks and create playlists via Spotify Web API.",
+  "auth": {
+    "type": "oauth",
+    "client_url": "https://accounts.spotify.com/authorize",
+    "scope": "user-top-read playlist-modify-public playlist-modify-private",
+    "authorization_url": "https://accounts.spotify.com/authorize",
+    "authorization_content_type": "application/x-www-form-urlencoded",
+    "token_url": "https://accounts.spotify.com/api/token"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://your-railway-url/openapi.yaml"
+  },
+  "logo_url": "https://your-railway-url/static/logo.png",
+  "contact_email": "you@example.com",
+  "legal_info_url": "https://your-railway-url/terms"
+}
