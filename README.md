@@ -121,3 +121,12 @@ Returns the top 5 tracks for the authenticated user.
 ```bash
 curl https://spotigen.vercel.app/top_tracks -H "Authorization: Bearer <ACCESS_TOKEN>"
 ```
+
+## Testing
+
+Install the required packages before running the test suite:
+
+```bash
+pip install -r requirements.txt
+pytest
+```

@@ -2,5 +2,5 @@ fastapi==0.95.1
 requests==2.30.0
 uvicorn==0.22.0
 python-dotenv
-httpx>=0.24
+httpx==0.28.1
 pytest>=7
