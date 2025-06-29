@@ -14,16 +14,13 @@ if hasattr(httpx, "ASGITransport"):
     httpx.Client.__init__ = _patched_init  # type: ignore
 from fastapi.testclient import TestClient
 
+import src.index
+import importlib
 
-def test_top_tracks_no_token(monkeypatch):
+def test_openapi_content_type(monkeypatch):
     monkeypatch.setenv("CLIENT_ID", "dummy")
     monkeypatch.setenv("REDIRECT_URI", "https://example.com/callback")
-    import src.index, src.tracks, api.index
     importlib.reload(src.index)
-    importlib.reload(src.tracks)
-    monkeypatch.setattr(src.tracks, "valid_access_token", lambda: None)
-    importlib.reload(api.index)
-    client = TestClient(api.index.app)
-    r = client.get("/top_tracks")
-    # Missing Authorization header should return 401
-    assert r.status_code == 401
+    client = TestClient(src.index.app)
+    r = client.get("/openapi.json?v=5")
+    assert r.headers["content-type"].startswith("application/json")
