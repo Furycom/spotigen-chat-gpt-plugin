@@ -9,22 +9,19 @@ servers:
 paths:
   /top_tracks:
     get:
-      summary: Get the user's 5 most‑played tracks
+      summary: Get user's five most‑played tracks
       operationId: getTopTracks
       responses:
         "200":
-          description: A JSON array with the top tracks
+          description: Top tracks returned
           content:
-            application/json:
-              schema:
-                type: array
-                items: {}
+            application/json: {}
         "401":
           description: Authentication required
 
   /create_playlist:
     post:
-      summary: Create a new playlist
+      summary: Create a playlist
       operationId: createPlaylist
       requestBody:
         required: true
@@ -35,19 +32,12 @@ paths:
               properties:
                 name:
                   type: string
-                  description: Name of the playlist to create
+                  description: Playlist name
               required: [name]
       responses:
         "200":
-          description: Playlist successfully created
+          description: Playlist created
           content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  url:
-                    type: string
+            application/json: {}
         "401":
           description: Authentication required
