@@ -50,6 +50,10 @@ To run the plugin, enter the following command:
 uvicorn main:app --reload
 ```
 
+> **Note**
+> If you update `.well-known/ai-plugin.json` or `openapi.json`, you need to
+> redeploy the Railway app so the public manifest reflects your changes.
+
 ### Setup ngrok
 
 To test your plugin locally, you will need to use [ngrok](https://ngrok.com/) to provide HTTPS access to your local server.
