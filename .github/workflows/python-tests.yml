@@ -21,3 +21,6 @@ jobs:
       - name: Run tests
         run: |
           pytest -q
+      - name: Validate OpenAPI
+        run: |
+          python scripts/check_openapi.py
