@@ -141,7 +141,7 @@
             }
           }
         },
-        "security": [ { "HTTPBearer": [] } ]
+        "security": []
       }
     },
 

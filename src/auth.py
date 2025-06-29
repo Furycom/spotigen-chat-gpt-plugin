@@ -40,6 +40,8 @@ def valid_access_token() -> str | None:
     )
     if r.status_code == 200:
         new_tokens = tokens | r.json()
+        if "expires_in" in new_tokens:
+            new_tokens["expires_at"] = int(time.time()) + new_tokens["expires_in"] - 60
         save_tokens(new_tokens)
         return new_tokens["access_token"]
     return None
