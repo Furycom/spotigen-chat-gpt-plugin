@@ -6,7 +6,7 @@
   "description_for_human": "Spotigen is an AI DJ crafting playlists to match your mood or day, and enhancing your content with suitable music.",
   "auth": {
     "type": "oauth",
-    "client_url": "https://accounts.spotify.com/authorize",
+    "client_url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/auth/login",
     "scope": "playlist-modify-public",
     "authorization_url": "https://accounts.spotify.com/api/token",
     "authorization_content_type": "application/x-www-form-urlencoded",
@@ -16,7 +16,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://spotigen.vercel.app/static/openapi.yaml",
+    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/openapi.yaml",
     "is_user_authenticated": true
   },
   "logo_url": "https://spotigen.vercel.app/static/logo.png",
