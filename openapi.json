@@ -1,9 +1,9 @@
 {
-  "openapi": "3.0.2",
+  "openapi": "3.1.0",
   "info": {
-    "title": "Spotigen",
-    "description": "Plugin to craft personalized music playlists based on a user's mood, daily experiences, or preferences. By interpreting descriptions of the user's day or emotional state, the plugin generates playlists that mirror these feelings. Spotigen can also enhance user-generated content such as social media stories or statuses by suggesting mood-congruent music. Additionally, it can construct playlists drawing inspiration from the user's favorite lists. Use it whenever a user desires to channel their emotions into music, enhance their online content with appropriate soundtracks, or explore new melodies resonating with their favorites.",
-    "version": "v1"
+    "title": "Spotigen API",
+    "version": "1.0.0",
+    "description": "API for Spotigen – ChatGPT plugin to fetch favourite tracks and manage Spotify playlists."
   },
   "servers": [
     {
@@ -14,10 +14,10 @@
     "/": {
       "get": {
         "summary": "Root",
-        "operationId": "root__get",
+        "operationId": "root",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Service is up",
             "content": {
               "application/json": {
                 "schema": {}
@@ -27,29 +27,35 @@
         }
       }
     },
+
     "/logo.png": {
       "get": {
         "summary": "Plugin Logo",
-        "operationId": "plugin_logo_logo_png_get",
+        "operationId": "getLogo",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "PNG logo",
             "content": {
-              "application/json": {
-                "schema": {}
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
               }
             }
           }
         }
       }
     },
+
     "/.well-known/ai-plugin.json": {
       "get": {
         "summary": "Plugin Manifest",
-        "operationId": "plugin_manifest__well_known_ai_plugin_json_get",
+        "description": "Return the plugin manifest used by ChatGPT.",
+        "operationId": "getManifest",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "Manifest JSON",
             "content": {
               "application/json": {
                 "schema": {}
@@ -59,13 +65,14 @@
         }
       }
     },
-    "/openapi.yaml": {
+
+    "/openapi.json": {
       "get": {
-        "summary": "Openapi Spec",
-        "operationId": "openapi_spec_openapi_yaml_get",
+        "summary": "OpenAPI Document (JSON)",
+        "operationId": "getOpenapiJson",
         "responses": {
           "200": {
-            "description": "Successful Response",
+            "description": "OpenAPI spec in JSON",
             "content": {
               "application/json": {
                 "schema": {}
@@ -75,10 +82,11 @@
         }
       }
     },
-    "/login": {
+
+    "/auth/login": {
       "get": {
         "summary": "OAuth Login",
-        "operationId": "login_login_get",
+        "operationId": "login",
         "responses": {
           "307": {
             "description": "Redirect to Spotify OAuth"
@@ -86,357 +94,158 @@
         }
       }
     },
-    "/callback": {
+
+    "/auth/callback": {
       "get": {
         "summary": "OAuth Callback",
-        "operationId": "callback_callback_get",
+        "operationId": "callback",
         "parameters": [
           {
             "name": "code",
             "in": "query",
             "required": false,
-            "schema": {
-              "type": "string"
-            }
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
           }
         ],
         "responses": {
-          "200": {
-            "description": "Auth success"
-          }
+          "200": { "description": "Auth success" }
         }
       }
     },
-    "/refresh": {
+
+    "/auth/refresh": {
       "get": {
         "summary": "Refresh Access Token",
-        "operationId": "refresh_refresh_get",
+        "operationId": "refresh",
         "responses": {
-          "200": {
-            "description": "New access token"
-          }
+          "200": { "description": "New access token" }
         }
       }
     },
+
+    "/top_tracks": {
+      "get": {
+        "summary": "Get Top Tracks",
+        "operationId": "getTopTracks",
+        "responses": {
+          "200": {
+            "description": "Five most‑played tracks",
+            "content": {
+              "application/json": { "schema": { "type": "array", "items": {} } }
+            }
+          }
+        },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
     "/playlist": {
       "get": {
         "summary": "Get Playlist",
-        "operationId": "get_playlist_playlist_get",
+        "operationId": "getPlaylist",
         "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Name",
-              "type": "string"
-            },
-            "name": "name",
-            "in": "query"
-          }
+          { "name": "name", "in": "query", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
+          "200": { "description": "Playlist found", "content": { "application/json": { "schema": {} } } },
+          "404": { "description": "Playlist not found" }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        "security": [ { "HTTPBearer": [] } ]
       },
       "post": {
         "summary": "Create Playlist",
-        "operationId": "create_playlist_playlist_post",
+        "operationId": "createPlaylist",
         "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Name",
-              "type": "string"
-            },
-            "name": "name",
-            "in": "query"
-          },
-          {
-            "required": true,
-            "schema": {
-              "title": "Public",
-              "type": "boolean"
-            },
-            "name": "public",
-            "in": "query"
-          }
+          { "name": "name", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "public", "in": "query", "required": true, "schema": { "type": "boolean" } }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
+          "200": { "description": "Playlist created", "content": { "application/json": { "schema": {} } } }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        "security": [ { "HTTPBearer": [] } ]
       }
     },
+
     "/playlist/{playlist_id}/tracks": {
       "get": {
         "summary": "Get Playlist Tracks",
-        "operationId": "get_playlist_tracks_playlist__playlist_id__tracks_get",
+        "operationId": "getPlaylistTracks",
         "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Playlist Id",
-              "type": "string"
-            },
-            "name": "playlist_id",
-            "in": "path"
-          }
+          { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
+          "200": { "description": "Tracks list", "content": { "application/json": { "schema": {} } } }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        "security": [ { "HTTPBearer": [] } ]
       },
       "post": {
         "summary": "Add Tracks To Playlist",
-        "operationId": "add_tracks_to_playlist_playlist__playlist_id__tracks_post",
+        "operationId": "addTracksToPlaylist",
         "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Playlist Id",
-              "type": "string"
-            },
-            "name": "playlist_id",
-            "in": "path"
-          }
+          { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrackTitles"
-              }
+              "schema": { "$ref": "#/components/schemas/TrackTitles" }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
+          "200": { "description": "Tracks added" }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        "security": [ { "HTTPBearer": [] } ]
       },
       "delete": {
         "summary": "Remove Tracks From Playlist",
-        "operationId": "remove_tracks_from_playlist_playlist__playlist_id__tracks_delete",
+        "operationId": "removeTracksFromPlaylist",
         "parameters": [
-          {
-            "required": true,
-            "schema": {
-              "title": "Playlist Id",
-              "type": "string"
-            },
-            "name": "playlist_id",
-            "in": "path"
-          }
+          { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/TrackURIs"
-              }
+              "schema": { "$ref": "#/components/schemas/TrackURIs" }
             }
-          },
-          "required": true
+          }
         },
         "responses": {
-          "200": {
-            "description": "Successful Response",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          },
-          "422": {
-            "description": "Validation Error",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/HTTPValidationError"
-                }
-              }
-            }
-          }
+          "200": { "description": "Tracks removed" }
         },
-        "security": [
-          {
-            "HTTPBearer": []
-          }
-        ]
+        "security": [ { "HTTPBearer": [] } ]
       }
     }
   },
+
   "components": {
-    "schemas": {
-      "HTTPValidationError": {
-        "title": "HTTPValidationError",
-        "type": "object",
-        "properties": {
-          "detail": {
-            "title": "Detail",
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/ValidationError"
-            }
-          }
-        }
-      },
-      "TrackTitles": {
-        "title": "TrackTitles",
-        "required": [
-          "titles"
-        ],
-        "type": "object",
-        "properties": {
-          "titles": {
-            "title": "Titles",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "TrackURIs": {
-        "title": "TrackURIs",
-        "required": [
-          "track_uris"
-        ],
-        "type": "object",
-        "properties": {
-          "track_uris": {
-            "title": "Track Uris",
-            "type": "array",
-            "items": {
-              "type": "string"
-            }
-          }
-        }
-      },
-      "ValidationError": {
-        "title": "ValidationError",
-        "required": [
-          "loc",
-          "msg",
-          "type"
-        ],
-        "type": "object",
-        "properties": {
-          "loc": {
-            "title": "Location",
-            "type": "array",
-            "items": {
-              "anyOf": [
-                {
-                  "type": "string"
-                },
-                {
-                  "type": "integer"
-                }
-              ]
-            }
-          },
-          "msg": {
-            "title": "Message",
-            "type": "string"
-          },
-          "type": {
-            "title": "Error Type",
-            "type": "string"
-          }
-        }
-      }
-    },
     "securitySchemes": {
       "HTTPBearer": {
         "type": "http",
         "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "TrackTitles": {
+        "type": "object",
+        "required": ["titles"],
+        "properties": {
+          "titles": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "TrackURIs": {
+        "type": "object",
+        "required": ["track_uris"],
+        "properties": {
+          "track_uris": { "type": "array", "items": { "type": "string" } }
+        }
       }
     }
   }
