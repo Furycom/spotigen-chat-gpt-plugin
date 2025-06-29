@@ -12,25 +12,20 @@ from src.services.spotify import SpotifyClient
 from src.utils import get_spotify_client
 
 # ---------------------------------------------------------------------------
-# Constants & helpers
+# Configuration
 # ---------------------------------------------------------------------------
 
-ROOT_DIR = Path(__file__).resolve().parent.parent  # repo root
-
-# Railway prod domain (used both in OpenAPI servers and for CORS)
-RAILWAY_URL = "https://spotigen-chat-gpt-plugin-production.up.railway.app"
-
-# ---------------------------------------------------------------------------
-# FastAPI application
-# ---------------------------------------------------------------------------
+ROOT_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(
-    title="Spotigen API",
-    version="1.0.0",
-    servers=[{"url": RAILWAY_URL}],
+    servers=[
+        {
+            "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app"
+        }
+    ]
 )
 
-_ENV = os.getenv("VERCEL_ENV", "development")
+_ENV = os.getenv("VERCEL_ENV", "development")  # Railway → "production" / local → dev
 
 origins = ["https://chat.openai.com"] if _ENV == "production" else ["*"]
 
@@ -42,41 +37,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Static files (.well‑known + logo)
+app.mount("/static", StaticFiles(directory="static"), name="static")
+app.mount("/.well-known", StaticFiles(directory=".well-known"), name="well-known")
+
 # ---------------------------------------------------------------------------
-# Static files (logo + manifest)
+# Generic plugin endpoints (logo, openapi)
 # ---------------------------------------------------------------------------
 
-app.mount("/static", StaticFiles(directory=ROOT_DIR / "static"), name="static")
+@app.get("/", include_in_schema=False)
+async def root():
+    """Health‑check root."""
+    return {"message": "Welcome to Spotigen – a ChatGPT plugin for Spotify!"}
 
 
 @app.get("/logo.png", include_in_schema=False)
 async def plugin_logo() -> FileResponse:
-    """Return the plugin logo (used by ChatGPT UI)."""
-    return FileResponse(ROOT_DIR / "static/logo.png", media_type="image/png")
-
-
-@app.get("/.well-known/ai-plugin.json", include_in_schema=False)
-async def plugin_manifest() -> FileResponse:
-    """Return the ChatGPT plugin manifest."""
-    return FileResponse(ROOT_DIR / ".well-known/ai-plugin.json", media_type="application/json")
+    """Serve the logo used by the plugin marketplace."""
+    return FileResponse("static/logo.png", media_type="image/png")
 
 
 @app.get("/openapi.json", include_in_schema=False)
 async def openapi_spec_json() -> FileResponse:
-    """Return the OpenAPI specification in **JSON** format (consumed by ChatGPT)."""
+    """Serve the OpenAPI specification in JSON so ChatGPT can parse it."""
     return FileResponse(ROOT_DIR / "openapi.json", media_type="application/json")
 
-# ---------------------------------------------------------------------------
-# Public endpoints (welcome + OAuth redirect helpers)
-# ---------------------------------------------------------------------------
-
-@app.get("/", include_in_schema=False)
-async def root() -> JSONResponse:
-    """Simple health‑check endpoint."""
-    return JSONResponse({"message": "Welcome to Spotigen – a ChatGPT plugin for Spotify!"})
 
 # ---------------------------------------------------------------------------
-# Spotify helper routes
+# Spotify business endpoints
 # ---------------------------------------------------------------------------
 
 @app.get("/playlist")
@@ -126,15 +114,3 @@ async def remove_tracks_from_playlist(
 ):
     spotify_client.remove_tracks_from_playlist(playlist_id, track_uris)
     return PlainTextResponse(status_code=200)
-
-
-# ---------------------------------------------------------------------------
-# Top Tracks endpoint
-# ---------------------------------------------------------------------------
-
-@app.get("/top_tracks")
-async def top_tracks(
-    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
-):
-    """Return the user's 5 most‑played tracks."""
-    return spotify_client.get_top_tracks()
