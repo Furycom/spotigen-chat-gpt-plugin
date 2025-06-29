@@ -36,7 +36,7 @@ paths:
           content:
             application/json:
               schema: {}
-  "/openapi.yaml":
+  "/openapi.json":
     get:
       summary: "Openapi Spec"
       operationId: "openapi_spec_openapi_yaml_get"
