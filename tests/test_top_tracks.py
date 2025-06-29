@@ -25,4 +25,5 @@ def test_top_tracks_no_token(monkeypatch):
     importlib.reload(api.index)
     client = TestClient(api.index.app)
     r = client.get("/top_tracks")
-    assert r.status_code == 401
+    # HTTPBearer auto_error=True results in 403 when missing the header
+    assert r.status_code == 403
