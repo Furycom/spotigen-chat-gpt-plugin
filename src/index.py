@@ -8,7 +8,7 @@ from src.dtos.api import TrackTitles, TrackURIs
 from src.utils import get_spotify_client
 from src.services.spotify import SpotifyClient
 
-app = FastAPI()
+app = FastAPI(servers=[{"url": "https://spotigen-chat-gpt-plugin-production.up.railway.app"}])
 
 _ENV = os.environ.get('VERCEL_ENV')
 

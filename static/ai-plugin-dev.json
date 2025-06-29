@@ -16,7 +16,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://f155-38-25-25-120.ngrok-free.app/static/openapi.yaml",
+    "url": "https://f155-38-25-25-120.ngrok-free.app/static/openapi.json",
     "is_user_authenticated": false
   },
   "logo_url": "https://f155-38-25-25-120.ngrok-free.app/static/logo.png",	
