@@ -2,16 +2,16 @@
   "schema_version": "v2",
   "name_for_human": "Spotigen",
   "name_for_model": "Spotigen",
-  "description_for_model": "Spotigen crafts personalized music playlists based on a user's mood, daily experiences, or preferences. It enhances user-generated content with mood-congruent music and can create playlists from user's favorites.",
-  "description_for_human": "Spotigen is an AI DJ crafting playlists to match your mood or day, and enhancing your content with suitable music.",
+  "description_for_model": "Plugin that lets ChatGPT manage a Spotify account: list the user's favourite tracks, create or edit playlists, and (soon) merge Last.fm history.",
+  "description_for_human": "Your personal AI DJ – retrieves your top tracks and builds playlists that match your mood or favourites.",
   "auth": {
     "type": "oauth",
     "client_url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/auth/login",
-    "scope": "playlist-modify-public",
+    "scope": "user-top-read playlist-modify-public playlist-modify-private",
     "authorization_url": "https://accounts.spotify.com/api/token",
     "authorization_content_type": "application/x-www-form-urlencoded",
     "verification_tokens": {
-      "openai": "4e1a207e8c504d369f8506ecddcbb216"
+      "openai": "d50d5fe1dd534426afce4cd84a5f5be3"
     }
   },
   "api": {
@@ -19,7 +19,7 @@
     "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/openapi.yaml",
     "is_user_authenticated": true
   },
-  "logo_url": "https://spotigen.vercel.app/static/logo.png",
-  "contact_email": "railly.angelo@gmail.com",
-  "legal_info_url": "http://raillyhugo.com/legal"
+  "logo_url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/static/logo.png",
+  "contact_email": "legal@example.com",
+  "legal_info_url": "http://example.com/legal"
 }
