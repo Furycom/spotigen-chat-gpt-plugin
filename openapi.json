@@ -179,9 +179,7 @@
         "parameters": [
           { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
-        "responses": {
-          "200": { "description": "Tracks list", "content": { "application/json": { "schema": {} } } }
-        },
+        "responses": {"200": { "description": "Tracks list", "content": { "application/json": { "schema": {} } } }},
         "security": [ { "HTTPBearer": [] } ]
       },
       "post": {
@@ -190,17 +188,8 @@
         "parameters": [
           { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/TrackTitles" }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Tracks added" }
-        },
+        "requestBody": {"required": true, "content": {"application/json": {"schema": { "$ref": "#/components/schemas/TrackTitles" }}}},
+        "responses": {"200": { "description": "Tracks added" }},
         "security": [ { "HTTPBearer": [] } ]
       },
       "delete": {
@@ -209,17 +198,152 @@
         "parameters": [
           { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
         ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": { "$ref": "#/components/schemas/TrackURIs" }
-            }
-          }
-        },
-        "responses": {
-          "200": { "description": "Tracks removed" }
-        },
+        "requestBody": {"required": true, "content": {"application/json": {"schema": { "$ref": "#/components/schemas/TrackURIs" }}}},
+        "responses": {"200": { "description": "Tracks removed" }},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/search": {
+      "get": {
+        "summary": "Search tracks",
+        "operationId": "searchTracks",
+        "parameters": [
+          {"name": "q", "in": "query", "required": true, "schema": {"type": "string"}},
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Results"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/recommendations": {
+      "get": {
+        "summary": "Recommendations",
+        "operationId": "recommendations",
+        "parameters": [
+          {"name": "seed_tracks", "in": "query", "required": true, "schema": {"type": "array", "items": {"type": "string"}}},
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Recommended tracks"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/audio_features": {
+      "get": {
+        "summary": "Audio Features",
+        "operationId": "audioFeatures",
+        "parameters": [
+          {"name": "track_ids", "in": "query", "required": true, "schema": {"type": "array", "items": {"type": "string"}}}
+        ],
+        "responses": {"200": {"description": "Features"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/recent": {
+      "get": {
+        "summary": "Recently Played",
+        "operationId": "recentTracks",
+        "parameters": [
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer"}}
+        ],
+        "responses": {"200": {"description": "Recent"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/top_tracks": {
+      "get": {
+        "summary": "User Top Tracks",
+        "operationId": "topTracks",
+        "parameters": [
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer"}},
+          {"name": "time_range", "in": "query", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {"200": {"description": "Top tracks"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/top_artists": {
+      "get": {
+        "summary": "User Top Artists",
+        "operationId": "topArtists",
+        "parameters": [
+          {"name": "limit", "in": "query", "required": false, "schema": {"type": "integer"}},
+          {"name": "time_range", "in": "query", "required": false, "schema": {"type": "string"}}
+        ],
+        "responses": {"200": {"description": "Top artists"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/stats": {
+      "get": {
+        "summary": "User Stats",
+        "operationId": "stats",
+        "responses": {"200": {"description": "Stats"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/queue": {
+      "post": {
+        "summary": "Queue Track",
+        "operationId": "queue",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"track_uri": {"type": "string"}}, "required": ["track_uri"]}}}},
+        "responses": {"200": {"description": "Queued"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/devices": {
+      "get": {
+        "summary": "Playback Devices",
+        "operationId": "devices",
+        "responses": {"200": {"description": "Devices"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/play": {
+      "post": {
+        "summary": "Start Playback",
+        "operationId": "play",
+        "requestBody": {"required": false, "content": {"application/json": {"schema": {"type": "object", "properties": {"track_uri": {"type": "string"}, "device_id": {"type": "string"}}}}}},
+        "responses": {"200": {"description": "Playing"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/pause": {
+      "post": {
+        "summary": "Pause Playback",
+        "operationId": "pause",
+        "requestBody": {"required": false, "content": {"application/json": {"schema": {"type": "object", "properties": {"device_id": {"type": "string"}}}}}},
+        "responses": {"200": {"description": "Paused"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/skip_next": {
+      "post": {
+        "summary": "Skip Next",
+        "operationId": "skipNext",
+        "requestBody": {"required": false, "content": {"application/json": {"schema": {"type": "object", "properties": {"device_id": {"type": "string"}}}}}},
+        "responses": {"200": {"description": "Skipped"}},
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/agent": {
+      "post": {
+        "summary": "Natural Language Proxy",
+        "operationId": "agent",
+        "requestBody": {"required": true, "content": {"application/json": {"schema": {"type": "object", "properties": {"prompt": {"type": "string"}}, "required": ["prompt"]}}}},
+        "responses": {"200": {"description": "Free form response"}},
         "security": [ { "HTTPBearer": [] } ]
       }
     }

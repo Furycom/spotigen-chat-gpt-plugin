@@ -68,7 +68,7 @@ async def custom_openapi() -> FileResponse:
 @app.get("/playlist")
 async def get_playlist(
     name: str,
-    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     playlist = await spotify_client.find_playlist(name)
     if playlist is None:
@@ -80,7 +80,7 @@ async def get_playlist(
 async def create_playlist(
     name: str,
     public: bool,
-    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     playlist_id = await spotify_client.create_playlist(name, public)
     return {"playlist_id": playlist_id}
@@ -89,7 +89,7 @@ async def create_playlist(
 @app.get("/playlist/{playlist_id}/tracks")
 async def get_playlist_tracks(
     playlist_id: str,
-    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     return await spotify_client.get_tracks_from_playlist(playlist_id)
 
@@ -98,7 +98,7 @@ async def get_playlist_tracks(
 async def add_tracks_to_playlist(
     playlist_id: str,
     track_titles: TrackTitles,
-    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     await spotify_client.add_tracks_to_playlist(playlist_id, track_titles)
     return PlainTextResponse(status_code=200)
@@ -108,7 +108,116 @@ async def add_tracks_to_playlist(
 async def remove_tracks_from_playlist(
     playlist_id: str,
     track_uris: TrackURIs,
-    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
 ):
     await spotify_client.remove_tracks_from_playlist(playlist_id, track_uris)
     return PlainTextResponse(status_code=200)
+
+
+# ---------------------------------------------------------------------------
+# Additional Spotify endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/search")
+async def search_tracks(
+    q: str,
+    limit: int = 10,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.search_tracks(q, limit)
+
+
+@app.get("/recommendations")
+async def recommendations(
+    seed_tracks: list[str],
+    limit: int = 20,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.get_recommendations(seed_tracks, limit)
+
+
+@app.get("/audio_features")
+async def audio_features(
+    track_ids: list[str],
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.audio_features(track_ids)
+
+
+@app.get("/recent")
+async def recent_tracks(
+    limit: int = 50,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.recent_tracks(limit)
+
+
+@app.get("/top_tracks")
+async def top_tracks(
+    limit: int = 50,
+    time_range: str = "long_term",
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.top_tracks(limit, time_range)
+
+
+@app.get("/top_artists")
+async def top_artists(
+    limit: int = 50,
+    time_range: str = "long_term",
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.top_artists(limit, time_range)
+
+
+@app.get("/stats")
+async def stats(
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.stats()
+
+
+@app.post("/queue")
+async def add_queue(
+    track_uri: str,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    await spotify_client.queue(track_uri)
+    return PlainTextResponse(status_code=200)
+
+
+@app.get("/devices")
+async def devices(
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    return await spotify_client.devices()
+
+
+@app.post("/play")
+async def play(
+    track_uri: str | None = None,
+    device_id: str | None = None,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    await spotify_client.play(track_uri, device_id)
+    return PlainTextResponse(status_code=200)
+
+
+@app.post("/pause")
+async def pause(
+    device_id: str | None = None,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    await spotify_client.pause(device_id)
+    return PlainTextResponse(status_code=200)
+
+
+@app.post("/skip_next")
+async def skip_next(
+    device_id: str | None = None,
+    spotify_client: SpotifyClient = Depends(get_spotify_client),
+):
+    await spotify_client.skip_next(device_id)
+    return PlainTextResponse(status_code=200)
+

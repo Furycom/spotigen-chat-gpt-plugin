@@ -125,3 +125,109 @@ class SpotifyClient:
             response = await client.delete(f'{self.base_url}/playlists/{playlist_id}/tracks', headers=self._auth_headers(), json=data)
         if response.status_code >= 400:
             raise HTTPException(status_code=response.status_code, detail=f"Failed to remove tracks from playlist. Error: {response.text}")
+
+    # ------------------------------------------------------------------
+    # Additional public API wrappers
+    # ------------------------------------------------------------------
+
+    async def search_tracks(self, query: str, limit: int = 10):
+        params = {"q": query, "type": "track", "limit": limit}
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/search", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("tracks", {}).get("items", [])
+
+    async def get_recommendations(self, seed_tracks: list[str], limit: int = 20):
+        params = {"seed_tracks": ",".join(seed_tracks), "limit": limit}
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/recommendations", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("tracks", [])
+
+    async def audio_features(self, track_ids: list[str]):
+        params = {"ids": ",".join(track_ids)}
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/audio-features", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("audio_features", [])
+
+    async def recent_tracks(self, limit: int = 50):
+        params = {"limit": limit}
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/me/player/recently-played", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("items", [])
+
+    async def top_tracks(self, limit: int = 50, time_range: str = "long_term"):
+        params = {"limit": limit, "time_range": time_range}
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/me/top/tracks", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("items", [])
+
+    async def top_artists(self, limit: int = 50, time_range: str = "long_term"):
+        params = {"limit": limit, "time_range": time_range}
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/me/top/artists", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("items", [])
+
+    async def queue(self, track_uri: str):
+        params = {"uri": track_uri}
+        async with httpx.AsyncClient() as client:
+            r = await client.post(f"{self.base_url}/me/player/queue", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+
+    async def devices(self):
+        async with httpx.AsyncClient() as client:
+            r = await client.get(f"{self.base_url}/me/player/devices", headers=self._auth_headers())
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+        return r.json().get("devices", [])
+
+    async def play(self, track_uri: str | None = None, device_id: str | None = None):
+        params = {}
+        if device_id:
+            params["device_id"] = device_id
+        data = {"uris": [track_uri]} if track_uri else None
+        async with httpx.AsyncClient() as client:
+            r = await client.put(f"{self.base_url}/me/player/play", headers=self._auth_headers(), params=params, json=data)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+
+    async def pause(self, device_id: str | None = None):
+        params = {"device_id": device_id} if device_id else None
+        async with httpx.AsyncClient() as client:
+            r = await client.put(f"{self.base_url}/me/player/pause", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+
+    async def skip_next(self, device_id: str | None = None):
+        params = {"device_id": device_id} if device_id else None
+        async with httpx.AsyncClient() as client:
+            r = await client.post(f"{self.base_url}/me/player/next", headers=self._auth_headers(), params=params)
+        if r.status_code >= 400:
+            raise HTTPException(status_code=r.status_code, detail=r.text)
+
+    async def stats(self):
+        artists = await self.top_artists(limit=50)
+        genres: dict[str, int] = {}
+        for a in artists:
+            for g in a.get("genres", []):
+                genres[g] = genres.get(g, 0) + 1
+
+        tracks = await self.top_tracks(limit=50)
+        ids = [t["id"] for t in tracks if t.get("id")]
+        features = await self.audio_features(ids)
+        dance = [f.get("danceability", 0) for f in features if f]
+        energy = [f.get("energy", 0) for f in features if f]
+        avg_d = sum(dance) / len(dance) if dance else 0
+        avg_e = sum(energy) / len(energy) if energy else 0
+        return {"genres": genres, "average": {"danceability": avg_d, "energy": avg_e}}

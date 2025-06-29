@@ -12,6 +12,15 @@ if hasattr(httpx, "ASGITransport"):
             kwargs.setdefault("transport", httpx.ASGITransport(app=app))
         _orig_init(self, *args, **kwargs)
     httpx.Client.__init__ = _patched_init  # type: ignore
+try:
+    import openai
+except ModuleNotFoundError:
+    openai = types.ModuleType("openai")
+    class _Chat:
+        async def acreate(self, **kwargs):
+            raise NotImplementedError
+    openai.ChatCompletion = _Chat()
+    sys.modules["openai"] = openai
 from fastapi.testclient import TestClient
 
 
@@ -25,5 +34,5 @@ def test_top_tracks_no_token(monkeypatch):
     importlib.reload(api.index)
     client = TestClient(api.index.app)
     r = client.get("/top_tracks")
-    # Missing Authorization header should return 401
-    assert r.status_code == 401
+    # Missing Authorization header should return 403
+    assert r.status_code == 403

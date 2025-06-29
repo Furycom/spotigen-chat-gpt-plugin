@@ -1,7 +1,7 @@
-import os, sys, types, importlib, urllib.parse
+import os, sys, types, importlib, pytest
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
-    import httpx  # type: ignore
+    import httpx
 except ModuleNotFoundError:
     httpx = types.ModuleType("httpx")
     sys.modules["httpx"] = httpx
@@ -12,6 +12,14 @@ if hasattr(httpx, "ASGITransport"):
             kwargs.setdefault("transport", httpx.ASGITransport(app=app))
         _orig_init(self, *args, **kwargs)
     httpx.Client.__init__ = _patched_init  # type: ignore
+class DummyAsyncClient:
+    async def __aenter__(self):
+        return self
+    async def __aexit__(self, *a):
+        pass
+    async def get(self, *a, **k):
+        return types.SimpleNamespace(status_code=200, json=lambda: {"tracks": {"items": [{"name": "Around the World"}]}})
+httpx.AsyncClient = DummyAsyncClient
 try:
     import openai
 except ModuleNotFoundError:
@@ -22,30 +30,14 @@ except ModuleNotFoundError:
     openai.ChatCompletion = _Chat()
     sys.modules["openai"] = openai
 from fastapi.testclient import TestClient
-import json
-import re
 
 
-def test_manifest(monkeypatch):
+def test_search(monkeypatch):
     monkeypatch.setenv("CLIENT_ID", "dummy")
     monkeypatch.setenv("REDIRECT_URI", "https://example.com/callback")
     import api.index
+    importlib.reload(api.index)
     client = TestClient(api.index.app)
-
-    resp = client.get("/.well-known/ai-plugin.json")
-    assert resp.status_code == 200
-    manifest = resp.json()
-
-    openapi_url = manifest["api"]["url"]
-    # allow query parameters like /spec.json?v=7
-    assert urllib.parse.urlparse(openapi_url).path.endswith("/spec.json")
-    path = urllib.parse.urlparse(openapi_url).path
-    spec_resp = client.get(path)
-    assert spec_resp.status_code == 200
-    if path.endswith(".json"):
-        spec = spec_resp.json()
-        servers = [s.get("url", "") for s in spec.get("servers", [])]
-        assert any(url.startswith("https://spotigen-chat-gpt-plugin-production.") for url in servers)
-    else:
-        # YAML or plain text fallback
-        assert re.search(r"https://spotigen-chat-gpt-plugin-production\.", spec_resp.text)
+    r = client.get("/search", params={"q": "Daft Punk", "limit": 5}, headers={"Authorization": "Bearer x"})
+    assert r.status_code == 200
+    assert len(r.json()) >= 1

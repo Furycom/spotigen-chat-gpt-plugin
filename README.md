@@ -48,6 +48,14 @@ UPSTASH_REDIS_REST_URL=...
 UPSTASH_REDIS_REST_TOKEN=...
 ```
 
+The application requires the following Spotify OAuth scopes:
+
+```
+user-top-read user-read-recently-played playlist-modify-public playlist-modify-private \
+user-read-private user-library-read user-read-playback-state user-modify-playback-state streaming
+```
+These scopes allow access to your playback state, library and top stats so Spotigen can control devices and build recommendations.
+
 ### Setup the plugin
 
 To install the required packages for this plugin, run the following command:
@@ -130,13 +138,27 @@ Once the plugin is installed, you'd like to try the following prompts:
 
 ## API
 
-### `GET /top_tracks`
+| Method | Path | Description |
+|-------|------|-------------|
+| `GET` | `/search` | Search tracks |
+| `GET` | `/recommendations` | Tracks recommendations |
+| `GET` | `/audio_features` | Audio features for given IDs |
+| `GET` | `/recent` | Recently played tracks |
+| `GET` | `/top_tracks` | User top tracks |
+| `GET` | `/top_artists` | User top artists |
+| `GET` | `/stats` | Genres and average audio features |
+| `POST` | `/queue` | Add track to queue |
+| `GET` | `/devices` | List playback devices |
+| `POST` | `/play` | Start playback |
+| `POST` | `/pause` | Pause playback |
+| `POST` | `/skip_next` | Skip to next track |
+| `POST` | `/agent` | NLP proxy calling the above routes |
 
-Returns the top 5 tracks for the authenticated user.
-The backend stores the Spotify access token, so no `Authorization` header is required.
+Example:
 
 ```bash
-curl https://spotigen.vercel.app/top_tracks
+curl -H "Authorization: Bearer <token>" \
+  "https://spotigen.vercel.app/search?q=Daft%20Punk&limit=5"
 ```
 
 ## Testing
@@ -151,3 +173,4 @@ pytest
 ## Opération gratuite 24/7
 
 Tokens Spotify sont conservés dans Upstash Redis et un workflow keep-alive ping la route `/` toutes les 15 minutes pour éviter la mise en veille Railway. Importez `log-alerts.json` dans Railway ▸ Settings ▸ Alerts pour être notifié des erreurs 401/403.
+Upstash et l'API Spotify limitent l'application à environ 60 requêtes par minute. Le client applique automatiquement un back‑off en cas de dépassement.

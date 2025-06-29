@@ -1,7 +1,7 @@
-import os, sys, types, importlib, urllib.parse
+import os, sys, types, importlib
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 try:
-    import httpx  # type: ignore
+    import httpx
 except ModuleNotFoundError:
     httpx = types.ModuleType("httpx")
     sys.modules["httpx"] = httpx
@@ -22,30 +22,31 @@ except ModuleNotFoundError:
     openai.ChatCompletion = _Chat()
     sys.modules["openai"] = openai
 from fastapi.testclient import TestClient
-import json
-import re
 
 
-def test_manifest(monkeypatch):
+def test_agent_pause(monkeypatch):
     monkeypatch.setenv("CLIENT_ID", "dummy")
     monkeypatch.setenv("REDIRECT_URI", "https://example.com/callback")
+    import src.agent as agent
+    import src.index as src_index
     import api.index
+    importlib.reload(agent)
+    importlib.reload(src_index)
+    importlib.reload(api.index)
+
+    called = {}
+
+    async def fake_pause(self, device_id=None):
+        called['yes'] = True
+
+    async def fake_acreate(**kwargs):
+        class R:
+            choices = [types.SimpleNamespace(message={"function_call": {"name": "pause", "arguments": "{}"}})]
+        return R()
+
+    monkeypatch.setattr(agent.SpotifyClient, "pause", fake_pause)
+    monkeypatch.setattr(agent.openai.ChatCompletion, "acreate", fake_acreate)
     client = TestClient(api.index.app)
-
-    resp = client.get("/.well-known/ai-plugin.json")
-    assert resp.status_code == 200
-    manifest = resp.json()
-
-    openapi_url = manifest["api"]["url"]
-    # allow query parameters like /spec.json?v=7
-    assert urllib.parse.urlparse(openapi_url).path.endswith("/spec.json")
-    path = urllib.parse.urlparse(openapi_url).path
-    spec_resp = client.get(path)
-    assert spec_resp.status_code == 200
-    if path.endswith(".json"):
-        spec = spec_resp.json()
-        servers = [s.get("url", "") for s in spec.get("servers", [])]
-        assert any(url.startswith("https://spotigen-chat-gpt-plugin-production.") for url in servers)
-    else:
-        # YAML or plain text fallback
-        assert re.search(r"https://spotigen-chat-gpt-plugin-production\.", spec_resp.text)
+    r = client.post("/agent", json={"prompt": "mets Pause"}, headers={"Authorization": "Bearer x"})
+    assert r.status_code == 200
+    assert called.get('yes')

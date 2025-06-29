@@ -1,6 +1,7 @@
 from src.index import app
 
 from src.tracks import router as tracks_router
+from src.agent import router as agent_router
 
 try:
     from api.auth import router as auth_router
@@ -11,5 +12,6 @@ if not any(getattr(route, 'path', '').startswith('/auth') for route in app.route
     app.include_router(auth_router, prefix="/auth", tags=["auth"])
 
 app.include_router(tracks_router)
+app.include_router(agent_router)
 
 __all__ = ["app"]
