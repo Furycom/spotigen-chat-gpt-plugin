@@ -28,7 +28,7 @@ def test_manifest(monkeypatch):
     manifest = resp.json()
 
     openapi_url = manifest["api"]["url"]
-    # allow query parameters like /spec.json?v=6
+    # allow query parameters like /spec.json?v=7
     assert urllib.parse.urlparse(openapi_url).path.endswith("/spec.json")
     path = urllib.parse.urlparse(openapi_url).path
     spec_resp = client.get(path)

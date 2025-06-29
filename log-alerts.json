@@ -1,0 +1,7 @@
+{
+  "rules": [
+    { "name": "Auth errors",
+      "match": "401|403", "threshold": 5,
+      "window": "5m", "action": "email" }
+  ]
+}
