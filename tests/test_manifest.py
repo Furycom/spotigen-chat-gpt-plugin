@@ -1,17 +1,5 @@
-import os, sys, types, importlib, urllib.parse
+import os, sys, importlib, urllib.parse
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-try:
-    import httpx  # type: ignore
-except ModuleNotFoundError:
-    httpx = types.ModuleType("httpx")
-    sys.modules["httpx"] = httpx
-if hasattr(httpx, "ASGITransport"):
-    _orig_init = httpx.Client.__init__
-    def _patched_init(self, *args, app=None, **kwargs):
-        if app is not None:
-            kwargs.setdefault("transport", httpx.ASGITransport(app=app))
-        _orig_init(self, *args, **kwargs)
-    httpx.Client.__init__ = _patched_init  # type: ignore
 from fastapi.testclient import TestClient
 import json
 import re
@@ -28,7 +16,7 @@ def test_manifest(monkeypatch):
     manifest = resp.json()
 
     openapi_url = manifest["api"]["url"]
-    # allow query parameters like /spec.json?v=7
+    # allow query parameters like /spec.json?v=10
     assert urllib.parse.urlparse(openapi_url).path.endswith("/spec.json")
     path = urllib.parse.urlparse(openapi_url).path
     spec_resp = client.get(path)
