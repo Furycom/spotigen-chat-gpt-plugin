@@ -1,89 +1,14 @@
 openapi: 3.1.0
 info:
-  title: Spotigen
-  description: |
-    Plugin “Spotigen” – crée et gère des playlists Spotify selon l’humeur de l’utilisateur.
-  version: v1
-
+  title: Spotigen API
+  version: "1.0"
 servers:
   - url: https://spotigen-chat-gpt-plugin-production.up.railway.app
-
 paths:
-  /:
-    get:
-      summary: Root
-      operationId: root__get
-      responses:
-        "200":
-          description: Successful Response
-
-  /login:
-    get:
-      summary: OAuth Login
-      operationId: login_login_get
-      responses:
-        "307":
-          description: Redirect to Spotify OAuth
-
-  /callback:
-    get:
-      summary: OAuth Callback
-      operationId: callback_callback_get
-      parameters:
-        - name: code
-          in: query
-          required: false
-          schema:
-            type: string
-      responses:
-        "200":
-          description: Auth success
-
-  /refresh:
-    get:
-      summary: Refresh Access Token
-      operationId: refresh_refresh_get
-      responses:
-        "200":
-          description: New access token
-
   /top_tracks:
     get:
       summary: Top Tracks
-      operationId: top_tracks_top_tracks_get
+      operationId: top_tracks
       responses:
         "200":
           description: Successful Response
-
-  /create_playlist:
-    post:
-      summary: Create Playlist
-      operationId: create_playlist_create_playlist_post
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PlaylistRequest'
-      responses:
-        "200":
-          description: Successful Response
-
-components:
-  schemas:
-    PlaylistRequest:
-      type: object
-      properties:
-        name:
-          type: string
-        description:
-          type: string
-          default: ""
-        public:
-          type: boolean
-          default: true
-        track_uris:
-          type: array
-          items:
-            type: string
-      required: [name]
