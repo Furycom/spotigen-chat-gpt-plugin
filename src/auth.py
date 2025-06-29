@@ -14,7 +14,14 @@ if not REDIRECT_URI:
     raise ValueError("REDIRECT_URI env var missing; set it in Railway and Spotify dashboard")
 REDIRECT_URI = REDIRECT_URI.strip()
 
-SCOPES = "user-top-read playlist-modify-public playlist-modify-private"
+SCOPES = (
+    "user-top-read "
+    "user-read-recently-played "
+    "user-read-currently-playing "
+    "user-read-playback-state "
+    "playlist-modify-public "
+    "playlist-modify-private"
+)
 
 # ---------- Internal helpers -------------------------------------------------
 

@@ -125,3 +125,27 @@ class SpotifyClient:
             response = await client.delete(f'{self.base_url}/playlists/{playlist_id}/tracks', headers=self._auth_headers(), json=data)
         if response.status_code >= 400:
             raise HTTPException(status_code=response.status_code, detail=f"Failed to remove tracks from playlist. Error: {response.text}")
+
+    async def recent(self, limit: int = 20):
+        params = {"limit": limit}
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self.base_url}/me/player/recently-played",
+                headers=self._auth_headers(),
+                params=params,
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json().get("items", [])
+
+    async def currently_playing(self):
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                f"{self.base_url}/me/player/currently-playing",
+                headers=self._auth_headers(),
+            )
+        if response.status_code == 204:
+            return None
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+        return response.json()

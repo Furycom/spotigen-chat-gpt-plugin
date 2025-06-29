@@ -58,7 +58,7 @@ async def plugin_logo() -> FileResponse:
 @app.get("/spec.json", include_in_schema=False)
 async def custom_openapi() -> FileResponse:
     """Serve the OpenAPI specification so ChatGPT can parse it."""
-    return FileResponse(ROOT_DIR / "openapi.json", media_type="application/json")
+    return FileResponse(ROOT_DIR / "spec.json", media_type="application/json")
 
 
 # ---------------------------------------------------------------------------
