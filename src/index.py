@@ -44,10 +44,11 @@ async def plugin_manifest():
     print("ai-plugin.json", _ENV)
     return FileResponse(".well-known/ai-plugin.json")
 
-@app.get("/openapi.yaml")
-async def openapi_spec():
-    print("openapi.yaml", _ENV)
-    return FileResponse("static/openapi.yaml")
+@app.get("/openapi.json")
+async def openapi_spec_json():
+    """Return the OpenAPI specification in JSON format."""
+    print("openapi.json", _ENV)
+    return FileResponse("openapi.json")
 
 
 # ChatGPT plugin endpoints for Spotify
