@@ -18,11 +18,9 @@ from src.utils import get_spotify_client
 ROOT_DIR = Path(__file__).resolve().parent.parent
 
 app = FastAPI(
-    servers=[
-        {
-            "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app"
-        }
-    ]
+    servers=[{"url": "https://spotigen-chat-gpt-plugin-production.up.railway.app"}],
+    openapi_url=None,
+    docs_url=None,
 )
 
 _ENV = os.getenv("VERCEL_ENV", "development")  # Railway → "production" / local → dev
@@ -57,9 +55,9 @@ async def plugin_logo() -> FileResponse:
     return FileResponse("static/logo.png", media_type="image/png")
 
 
-@app.get("/openapi.json", include_in_schema=False)
-async def openapi_spec_json() -> FileResponse:
-    """Serve the OpenAPI specification in JSON so ChatGPT can parse it."""
+@app.get("/spec.json", include_in_schema=False)
+async def custom_openapi() -> FileResponse:
+    """Serve the OpenAPI specification so ChatGPT can parse it."""
     return FileResponse(ROOT_DIR / "openapi.json", media_type="application/json")
 
 
