@@ -36,6 +36,18 @@ To integrate ChatGPT with Spotify API via OAuth, you have to set up a Spotify ap
 The **same** URL must appear both in Railway → Variables → `REDIRECT_URI`
 and in the Spotify Dashboard → Redirect URIs.
 
+### Required environment variables
+
+Set the following variables in Railway and your `.env` file:
+
+```
+CLIENT_ID=...
+CLIENT_SECRET=...
+REDIRECT_URI=https://<your-domain>/auth/callback
+UPSTASH_REDIS_REST_URL=...
+UPSTASH_REDIS_REST_TOKEN=...
+```
+
 ### Setup the plugin
 
 To install the required packages for this plugin, run the following command:
@@ -121,9 +133,10 @@ Once the plugin is installed, you'd like to try the following prompts:
 ### `GET /top_tracks`
 
 Returns the top 5 tracks for the authenticated user.
+The backend stores the Spotify access token, so no `Authorization` header is required.
 
 ```bash
-curl https://spotigen.vercel.app/top_tracks -H "Authorization: Bearer <ACCESS_TOKEN>"
+curl https://spotigen.vercel.app/top_tracks
 ```
 
 ## Testing
@@ -134,3 +147,7 @@ Install the required packages before running the test suite:
 pip install -r requirements.txt
 pytest
 ```
+
+## Opération gratuite 24/7
+
+Tokens Spotify sont conservés dans Upstash Redis et un workflow keep-alive ping la route `/` toutes les 15 minutes pour éviter la mise en veille Railway. Importez `log-alerts.json` dans Railway ▸ Settings ▸ Alerts pour être notifié des erreurs 401/403.

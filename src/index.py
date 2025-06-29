@@ -70,7 +70,7 @@ async def get_playlist(
     name: str,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    playlist = spotify_client.find_playlist(name)
+    playlist = await spotify_client.find_playlist(name)
     if playlist is None:
         return JSONResponse(status_code=404, content={"message": "Playlist not found"})
     return playlist
@@ -82,7 +82,7 @@ async def create_playlist(
     public: bool,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    playlist_id = spotify_client.create_playlist(name, public)
+    playlist_id = await spotify_client.create_playlist(name, public)
     return {"playlist_id": playlist_id}
 
 
@@ -91,7 +91,7 @@ async def get_playlist_tracks(
     playlist_id: str,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    return spotify_client.get_tracks_from_playlist(playlist_id)
+    return await spotify_client.get_tracks_from_playlist(playlist_id)
 
 
 @app.post("/playlist/{playlist_id}/tracks")
@@ -100,7 +100,7 @@ async def add_tracks_to_playlist(
     track_titles: TrackTitles,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    spotify_client.add_tracks_to_playlist(playlist_id, track_titles)
+    await spotify_client.add_tracks_to_playlist(playlist_id, track_titles)
     return PlainTextResponse(status_code=200)
 
 
@@ -110,5 +110,5 @@ async def remove_tracks_from_playlist(
     track_uris: TrackURIs,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    spotify_client.remove_tracks_from_playlist(playlist_id, track_uris)
+    await spotify_client.remove_tracks_from_playlist(playlist_id, track_uris)
     return PlainTextResponse(status_code=200)

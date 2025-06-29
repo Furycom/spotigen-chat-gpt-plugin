@@ -1,8 +1,9 @@
 # src/auth.py
 from urllib.parse import urlencode, quote
-import os, requests, time, json
+import os, httpx, time
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import RedirectResponse, JSONResponse
+from .storage import save_tokens, load_tokens
 
 router = APIRouter(tags=["auth"])
 
@@ -14,31 +15,19 @@ if not REDIRECT_URI:
 REDIRECT_URI = REDIRECT_URI.strip()
 
 SCOPES = "user-top-read playlist-modify-public playlist-modify-private"
-TOKEN_FILE = "/tmp/spotify_tokens.json"
 
 # ---------- Internal helpers -------------------------------------------------
 
-def _save_tokens(tokens: dict):
-    tokens["expires_at"] = int(time.time()) + tokens["expires_in"] - 60
-    with open(TOKEN_FILE, "w") as f:
-        json.dump(tokens, f)
-
-
-def _load_tokens() -> dict | None:
-    if not os.path.exists(TOKEN_FILE):
-        return None
-    with open(TOKEN_FILE) as f:
-        return json.load(f)
 
 
 def valid_access_token() -> str | None:
-    tokens = _load_tokens()
+    tokens = load_tokens()
     if not tokens:
         return None
     if tokens["expires_at"] > time.time():
         return tokens["access_token"]
 
-    r = requests.post(
+    r = httpx.post(
         "https://accounts.spotify.com/api/token",
         data={
             "grant_type": "refresh_token",
@@ -49,9 +38,9 @@ def valid_access_token() -> str | None:
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         timeout=15,
     )
-    if r.ok:
+    if r.status_code == 200:
         new_tokens = tokens | r.json()
-        _save_tokens(new_tokens)
+        save_tokens(new_tokens)
         return new_tokens["access_token"]
     return None
 
@@ -76,7 +65,7 @@ def callback(code: str | None = None, error: str | None = None):
     if error:
         raise HTTPException(400, f"Spotify auth error: {error}")
 
-    r = requests.post(
+    r = httpx.post(
         "https://accounts.spotify.com/api/token",
         data={
             "grant_type": "authorization_code",
@@ -88,21 +77,23 @@ def callback(code: str | None = None, error: str | None = None):
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         timeout=15,
     )
-    if not r.ok:
+    if r.status_code != 200:
         raise HTTPException(r.status_code, "Impossible d’obtenir le jeton Spotify")
 
-    _save_tokens(r.json())
+    data = r.json()
+    data["expires_at"] = int(time.time()) + data.get("expires_in", 0) - 60
+    save_tokens(data)
     return JSONResponse({"message": "Authentification réussie."})
 
 
 @router.get("/refresh")
 def refresh():
     """Force refresh of the access token using the stored refresh token."""
-    tok = _load_tokens()
+    tok = load_tokens()
     if not tok:
         raise HTTPException(400, "Pas de refresh_token enregistré.")
 
-    r = requests.post(
+    r = httpx.post(
         "https://accounts.spotify.com/api/token",
         data={
             "grant_type": "refresh_token",
@@ -113,9 +104,10 @@ def refresh():
         headers={"Content-Type": "application/x-www-form-urlencoded"},
         timeout=15,
     )
-    if not r.ok:
+    if r.status_code != 200:
         raise HTTPException(r.status_code, "Échec refresh_token")
 
     new_tok = tok | r.json()
-    _save_tokens(new_tok)
+    new_tok["expires_at"] = int(time.time()) + new_tok.get("expires_in", 0) - 60
+    save_tokens(new_tok)
     return {"access_token": new_tok["access_token"]}
