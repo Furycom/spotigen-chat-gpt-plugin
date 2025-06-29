@@ -40,12 +40,9 @@ async def plugin_logo():
 
 @app.get("/.well-known/ai-plugin.json")
 async def plugin_manifest():
-    if _ENV == 'production':
-        print(_ENV, "production")
-        return FileResponse("static/ai-plugin.json")
-    else:
-        print(_ENV, "development")
-        return FileResponse("static/ai-plugin-dev.json")
+    """Return the plugin manifest used by ChatGPT."""
+    print("ai-plugin.json", _ENV)
+    return FileResponse(".well-known/ai-plugin.json")
 
 @app.get("/openapi.yaml")
 async def openapi_spec():
