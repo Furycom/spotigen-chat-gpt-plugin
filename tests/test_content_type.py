@@ -22,5 +22,5 @@ def test_openapi_content_type(monkeypatch):
     monkeypatch.setenv("REDIRECT_URI", "https://example.com/callback")
     importlib.reload(src.index)
     client = TestClient(src.index.app)
-    r = client.get("/openapi.json?v=5")
+    r = client.get("/spec.json?v=6")
     assert r.headers["content-type"].startswith("application/json")
