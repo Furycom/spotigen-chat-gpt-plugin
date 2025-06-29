@@ -111,3 +111,13 @@ Once the plugin is installed, you'd like to try the following prompts:
 
 > **Prompt 2**: "There's this one artist named 'John Smith' who is my absolute favorite, and I can't get enough of their music. Could you curate a playlist based on 'John Smith's' style and genre? I'm looking to explore more songs that resonate with their sound."
 
+
+## API
+
+### `GET /top_tracks`
+
+Returns the top 5 tracks for the authenticated user.
+
+```bash
+curl https://spotigen.vercel.app/top_tracks -H "Authorization: Bearer <ACCESS_TOKEN>"
+```
