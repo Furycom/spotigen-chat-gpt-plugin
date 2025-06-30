@@ -101,19 +101,57 @@ class SpotifyClient:
         return response.json()["id"]
 
     async def _playlist_id(self, pid_or_name: str) -> str:
-        """Return a valid Spotify playlist ID.
+        """Return a valid Spotify playlist ID from either a name or ID.
 
-        If ``pid_or_name`` already looks like a Spotify ID (22 characters and no
-        spaces), return it unchanged. Otherwise resolve it by searching the
-        user's playlists via :meth:`find_playlist`.
+        ``pid_or_name`` may already be a playlist ID. If it instead looks like a
+        human readable name, the user's playlists are searched (up to two pages)
+        for an exact case-insensitive match where the playlist owner is the
+        current user.  If still unresolved, a single ``/search`` query is issued
+        and the first result owned by the user is selected.  ``HTTPException``
+        with ``404`` is raised if no match can be found.
         """
 
+        # Spotify IDs are typically 22 characters without spaces.
         if len(pid_or_name) == 22 and " " not in pid_or_name:
             return pid_or_name
-        pl_id = await self.find_playlist(pid_or_name)
-        if pl_id is None:
-            raise HTTPException(status_code=404, detail="Playlist not found")
-        return pl_id
+
+        user_id = await self.get_my_user_id()
+
+        # --- Browse the user's playlists (first two pages) -----------------
+        for offset in (0, 50):
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{self.base_url}/me/playlists",
+                    headers=self._auth_headers(),
+                    params={"limit": 50, "offset": offset},
+                )
+            if resp.status_code >= 400:
+                raise HTTPException(status_code=resp.status_code, detail=resp.text)
+            data = resp.json()
+            for pl in data.get("items", []):
+                if (
+                    pl.get("name", "").lower() == pid_or_name.lower()
+                    and pl.get("owner", {}).get("id") == user_id
+                ):
+                    return pl["id"]
+            if not data.get("next"):
+                break
+
+        # --- Fallback search -------------------------------------------------
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(
+                f"{self.base_url}/search",
+                headers=self._auth_headers(),
+                params={"type": "playlist", "q": pid_or_name, "limit": 5},
+            )
+        if resp.status_code >= 400:
+            raise HTTPException(status_code=resp.status_code, detail=resp.text)
+        results = resp.json().get("playlists", {}).get("items", [])
+        for pl in results:
+            if pl.get("owner", {}).get("id") == user_id:
+                return pl["id"]
+
+        raise HTTPException(status_code=404, detail="Playlist not found")
 
     async def get_tracks_from_playlist(self, playlist_id: str):
         async with httpx.AsyncClient() as client:
