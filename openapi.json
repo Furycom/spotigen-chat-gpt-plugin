@@ -134,8 +134,8 @@
         "summary": "Get Top Tracks",
         "operationId": "getTopTracks",
         "parameters": [
-          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 5 } },
-          { "name": "time_range", "in": "query", "schema": { "type": "string", "default": "medium_term" } }
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 5 } },
+          { "name": "time_range", "in": "query", "schema": { "type": "string", "enum": ["short_term", "medium_term", "long_term"], "default": "medium_term" } }
         ],
         "responses": {
           "200": {
@@ -170,6 +170,42 @@
           "204": { "description": "No track playing" }
         },
         "security": []
+      }
+    },
+
+    "/play": {
+      "post": {
+        "summary": "Resume Playback",
+        "operationId": "play",
+        "responses": { "200": { "description": "Playback started" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/pause": {
+      "post": {
+        "summary": "Pause Playback",
+        "operationId": "pause",
+        "responses": { "200": { "description": "Playback paused" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/next": {
+      "post": {
+        "summary": "Skip To Next",
+        "operationId": "next",
+        "responses": { "200": { "description": "Skipped to next" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/previous": {
+      "post": {
+        "summary": "Skip To Previous",
+        "operationId": "previous",
+        "responses": { "200": { "description": "Went to previous" } },
+        "security": [ { "HTTPBearer": [] } ]
       }
     },
 

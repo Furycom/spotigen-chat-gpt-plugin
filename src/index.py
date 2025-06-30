@@ -112,3 +112,35 @@ async def remove_tracks_from_playlist(
 ):
     await spotify_client.remove_tracks_from_playlist(playlist_id, track_uris)
     return PlainTextResponse(status_code=200)
+
+
+@app.post("/play")
+async def resume_playback(
+    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+):
+    await spotify_client.play()
+    return PlainTextResponse(status_code=200)
+
+
+@app.post("/pause")
+async def pause_playback(
+    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+):
+    await spotify_client.pause()
+    return PlainTextResponse(status_code=200)
+
+
+@app.post("/next")
+async def next_track(
+    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+):
+    await spotify_client.next()
+    return PlainTextResponse(status_code=200)
+
+
+@app.post("/previous")
+async def previous_track(
+    spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
+):
+    await spotify_client.previous()
+    return PlainTextResponse(status_code=200)

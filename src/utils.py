@@ -2,10 +2,10 @@ from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from src.services.spotify import SpotifyClient
 
-bearer_scheme = HTTPBearer()
+bearer_scheme = HTTPBearer(auto_error=False)
 
 def ensure_token_passed(credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme)):
-    if credentials.scheme != "Bearer" or not credentials.credentials:
+    if not credentials or credentials.scheme != "Bearer" or not credentials.credentials:
         raise HTTPException(
             status_code=401, detail="Invalid or missing access token")
     return credentials.credentials
