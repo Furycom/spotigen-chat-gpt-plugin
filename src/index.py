@@ -2,14 +2,14 @@ import os
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import FastAPI, Depends
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse, PlainTextResponse, FileResponse
+from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 
 from src.dtos.api import TrackTitles, TrackURIs
 from src.services.spotify import SpotifyClient
-from src.utils import get_spotify_client
+from src.utils import get_redis_spotify_client, get_spotify_client
 
 # ---------------------------------------------------------------------------
 # Configuration
@@ -43,6 +43,7 @@ app.mount("/.well-known", StaticFiles(directory=".well-known"), name="well-known
 # Generic plugin endpoints (logo, openapi)
 # ---------------------------------------------------------------------------
 
+
 @app.get("/", include_in_schema=False)
 async def root():
     """Health‑check root."""
@@ -64,6 +65,7 @@ async def custom_openapi() -> FileResponse:
 # ---------------------------------------------------------------------------
 # Spotify business endpoints
 # ---------------------------------------------------------------------------
+
 
 @app.get("/playlist")
 async def get_playlist(
@@ -144,3 +146,90 @@ async def previous_track(
 ):
     await spotify_client.previous()
     return PlainTextResponse(status_code=200)
+
+
+@app.get("/playlists")
+async def playlists(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+    limit: int = 20,
+    offset: int = 0,
+):
+    return await spotify_client.get_playlists(limit=limit, offset=offset)
+
+
+@app.get("/library/tracks")
+async def library_tracks(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+    limit: int = 50,
+    offset: int = 0,
+):
+    return await spotify_client.get_library_tracks(limit=limit, offset=offset)
+
+
+@app.get("/library/albums")
+async def library_albums(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+    limit: int = 50,
+    offset: int = 0,
+):
+    return await spotify_client.get_library_albums(limit=limit, offset=offset)
+
+
+@app.get("/follow/artists")
+async def followed_artists(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+    limit: int = 50,
+    after: str | None = None,
+):
+    return await spotify_client.get_followed_artists(limit=limit, after=after)
+
+
+@app.put("/follow/artists/{artist_id}")
+async def follow_artist(
+    artist_id: str,
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+):
+    await spotify_client.follow_artist(artist_id)
+    return PlainTextResponse(status_code=200)
+
+
+@app.delete("/follow/artists/{artist_id}")
+async def unfollow_artist(
+    artist_id: str,
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+):
+    await spotify_client.unfollow_artist(artist_id)
+    return PlainTextResponse(status_code=200)
+
+
+@app.get("/search")
+async def search(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+    q: str,
+    type: str = "track,artist,album",
+    limit: int = 10,
+):
+    return await spotify_client.search(q, type=type, limit=limit)
+
+
+@app.get("/recommend")
+async def recommend(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+    seed_tracks: str = "",
+    seed_artists: str = "",
+    seed_genres: str = "",
+    limit: int = 20,
+):
+    return await spotify_client.recommendations(
+        seed_tracks=seed_tracks,
+        seed_artists=seed_artists,
+        seed_genres=seed_genres,
+        limit=limit,
+    )
+
+
+@app.get("/profile")
+async def profile(
+    spotify_client: Annotated[SpotifyClient, Depends(get_redis_spotify_client)],
+):
+    return await spotify_client.get_profile()
