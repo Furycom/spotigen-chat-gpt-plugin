@@ -16,7 +16,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/spec.json?v=12",
+    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/spec.json?v=13",
     "is_user_authenticated": true
   },
   "logo_url": "https://spotigen.vercel.app/static/logo.png",
