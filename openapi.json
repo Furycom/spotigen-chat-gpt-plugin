@@ -286,6 +286,123 @@
         },
         "security": [ { "HTTPBearer": [] } ]
       }
+    },
+    "/playlists": {
+      "get": {
+        "summary": "User Playlists",
+        "operationId": "playlists",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": { "description": "List", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+    "/library/tracks": {
+      "get": {
+        "summary": "User Library Tracks",
+        "operationId": "libraryTracks",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": { "description": "List", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+    "/library/albums": {
+      "get": {
+        "summary": "User Library Albums",
+        "operationId": "libraryAlbums",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "offset", "in": "query", "schema": { "type": "integer", "default": 0 } }
+        ],
+        "responses": {
+          "200": { "description": "List", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+    "/follow/artists": {
+      "get": {
+        "summary": "Followed Artists",
+        "operationId": "followedArtists",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 50 } },
+          { "name": "after", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "List", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+    "/follow/artists/{artist_id}": {
+      "put": {
+        "summary": "Follow Artist",
+        "operationId": "followArtist",
+        "parameters": [
+          { "name": "artist_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Followed" } },
+        "security": []
+      },
+      "delete": {
+        "summary": "Unfollow Artist",
+        "operationId": "unfollowArtist",
+        "parameters": [
+          { "name": "artist_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": { "200": { "description": "Unfollowed" } },
+        "security": []
+      }
+    },
+    "/search": {
+      "get": {
+        "summary": "Search",
+        "operationId": "search",
+        "parameters": [
+          { "name": "q", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "type", "in": "query", "schema": { "type": "string", "default": "track,artist,album" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 10 } }
+        ],
+        "responses": {
+          "200": { "description": "Results", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+    "/recommend": {
+      "get": {
+        "summary": "Recommendations",
+        "operationId": "recommend",
+        "parameters": [
+          { "name": "seed_tracks", "in": "query", "schema": { "type": "string" } },
+          { "name": "seed_artists", "in": "query", "schema": { "type": "string" } },
+          { "name": "seed_genres", "in": "query", "schema": { "type": "string" } },
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": { "description": "Results", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+    "/profile": {
+      "get": {
+        "summary": "Get Profile",
+        "operationId": "profile",
+        "responses": {
+          "200": { "description": "Profile", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
     }
   },
 

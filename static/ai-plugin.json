@@ -7,7 +7,7 @@
   "auth": {
     "type": "oauth",
     "client_url": "https://accounts.spotify.com/authorize",
-    "scope": "user-top-read user-read-recently-played user-read-currently-playing user-read-playback-state user-modify-playback-state playlist-modify-public playlist-modify-private",
+    "scope": "user-top-read user-read-recently-played user-read-currently-playing user-read-playback-state user-modify-playback-state playlist-read-private playlist-read-collaborative playlist-modify-public playlist-modify-private user-library-read user-library-modify user-follow-read user-follow-modify user-read-private user-read-email",
     "authorization_url": "https://accounts.spotify.com/api/token",
     "authorization_content_type": "application/x-www-form-urlencoded",
     "verification_tokens": {
@@ -16,7 +16,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/spec.json?v=13",
+    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/spec.json?v=15",
     "is_user_authenticated": true
   },
   "logo_url": "https://spotigen.vercel.app/static/logo.png",
