@@ -3,11 +3,11 @@
   "name_for_human": "Spotigen",
   "name_for_model": "Spotigen",
   "description_for_model": "ChatGPT plugin allowing playlist creation and retrieval of the user's favourite tracks on Spotify.",
-  "description_for_human": "Your personal AI DJ – build playlists, fetch your top tracks.",
+  "description_for_human": "Your personal AI DJ – build playlists, fetch your top tracks.",
   "auth": {
     "type": "oauth",
     "client_url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/auth/login",
-    "scope": "user-read-playback-state user-modify-playback-state user-read-currently-playing user-read-recently-played user-top-read playlist-modify-public playlist-modify-private playlist-read-private playlist-read-collaborative user-library-read user-library-modify user-follow-read user-follow-modify user-read-playback-position",
+    "scope": "playlist-modify-private playlist-modify-public playlist-read-collaborative playlist-read-private user-follow-modify user-follow-read user-library-modify user-library-read user-read-currently-playing user-read-playback-position user-read-playback-state user-read-recently-played user-top-read user-modify-playback-state",
     "authorization_url": "https://accounts.spotify.com/api/token",
     "authorization_content_type": "application/x-www-form-urlencoded",
     "verification_tokens": {
@@ -16,7 +16,7 @@
   },
   "api": {
     "type": "openapi",
-    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/spec.json?v=16",
+    "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/spec.json?v=17",
     "is_user_authenticated": true
   },
   "logo_url": "https://spotigen-chat-gpt-plugin-production.up.railway.app/static/logo.png",
