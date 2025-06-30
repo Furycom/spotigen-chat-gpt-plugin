@@ -100,6 +100,21 @@ class SpotifyClient:
             )
         return response.json()["id"]
 
+    async def _playlist_id(self, pid_or_name: str) -> str:
+        """Return a valid Spotify playlist ID.
+
+        If ``pid_or_name`` already looks like a Spotify ID (22 characters and no
+        spaces), return it unchanged. Otherwise resolve it by searching the
+        user's playlists via :meth:`find_playlist`.
+        """
+
+        if len(pid_or_name) == 22 and " " not in pid_or_name:
+            return pid_or_name
+        pl_id = await self.find_playlist(pid_or_name)
+        if pl_id is None:
+            raise HTTPException(status_code=404, detail="Playlist not found")
+        return pl_id
+
     async def get_tracks_from_playlist(self, playlist_id: str):
         async with httpx.AsyncClient() as client:
             response = await client.get(

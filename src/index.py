@@ -93,7 +93,8 @@ async def get_playlist_tracks(
     playlist_id: str,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    return await spotify_client.get_tracks_from_playlist(playlist_id)
+    true_id = await spotify_client._playlist_id(playlist_id)
+    return await spotify_client.get_tracks_from_playlist(true_id)
 
 
 @app.post("/playlist/{playlist_id}/tracks")
