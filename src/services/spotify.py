@@ -149,3 +149,39 @@ class SpotifyClient:
         if response.status_code >= 400:
             raise HTTPException(status_code=response.status_code, detail=response.text)
         return response.json()
+
+    async def play(self):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/me/player/play",
+                headers=self._auth_headers(),
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    async def pause(self):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/me/player/pause",
+                headers=self._auth_headers(),
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    async def next(self):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/me/player/next",
+                headers=self._auth_headers(),
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
+
+    async def previous(self):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"{self.base_url}/me/player/previous",
+                headers=self._auth_headers(),
+            )
+        if response.status_code >= 400:
+            raise HTTPException(status_code=response.status_code, detail=response.text)
