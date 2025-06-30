@@ -5,10 +5,14 @@ except ModuleNotFoundError:  # pragma: no cover - fallback for tests
     class _Dummy:
         def __init__(self):
             self.store = {}
-        def set(self, k, v):
+        def set(self, k, v, ex=None):
             self.store[k] = v
         def get(self, k):
             return self.store.get(k)
+        def sadd(self, k, *vals):
+            self.store.setdefault(k, set()).update(vals)
+        def smembers(self, k):
+            return list(self.store.get(k, set()))
     def Redis(url=None, token=None):
         return _Dummy()
 

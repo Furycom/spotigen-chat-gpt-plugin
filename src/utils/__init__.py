@@ -3,6 +3,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from src.services.spotify import SpotifyClient
 
+from .http import safe_get  # re-export
+
 bearer_scheme = HTTPBearer(auto_error=False)
 
 

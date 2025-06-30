@@ -9,6 +9,7 @@ from fastapi.staticfiles import StaticFiles
 
 from src.dtos.api import TrackTitles, TrackURIs
 from src.services.spotify import SpotifyClient
+from src.services.lastfm import LastFMService
 from src.utils import get_redis_spotify_client, get_spotify_client
 
 # ---------------------------------------------------------------------------
@@ -59,7 +60,24 @@ async def plugin_logo() -> FileResponse:
 @app.get("/spec.json", include_in_schema=False)
 async def custom_openapi() -> FileResponse:
     """Serve the OpenAPI specification so ChatGPT can parse it."""
-    return FileResponse(ROOT_DIR / "spec.json", media_type="application/json")
+    return FileResponse("static/spec.json", media_type="application/json")
+
+
+# ---------------------------------------------------------------------------
+# Last.fm helper endpoints
+# ---------------------------------------------------------------------------
+
+
+@app.get("/lastfm/tags")
+async def lastfm_tags(artist: str, title: str, limit: int = 5):
+    service = LastFMService()
+    return service.track_tags(artist, title, limit)
+
+
+@app.get("/lastfm/scrobbles")
+async def lastfm_scrobbles(start: int, end: int):
+    service = LastFMService()
+    return service.scrobble_history(start, end)
 
 
 # ---------------------------------------------------------------------------

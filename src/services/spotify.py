@@ -378,7 +378,20 @@ class SpotifyClient:
             )
         if response.status_code >= 400:
             raise HTTPException(status_code=response.status_code, detail=response.text)
-        return response.json().get("tracks", [])
+        tracks = response.json().get("tracks", [])
+
+        # Filter out URIs already recommended for this user
+        try:
+            from src.storage import _redis
+
+            user_id = await self.get_my_user_id()
+            seen = set(_redis.smembers(f"recommended:{user_id}") or [])
+            fresh = [t for t in tracks if t.get("uri") not in seen]
+            if fresh:
+                _redis.sadd(f"recommended:{user_id}", *[t.get("uri") for t in fresh])
+            return fresh
+        except Exception:
+            return tracks
 
     async def get_profile(self):
         async with httpx.AsyncClient() as client:
