@@ -16,8 +16,6 @@ sys.path.append(str(ROOT / "src"))
 from agent import functions  # s'assurer que le module existe
 
 spec_path = ROOT / "static" / "spec.json"
-if not spec_path.exists():
-    spec_path = ROOT / "openapi.json"
 
 with open(spec_path) as f:
     spec = json.load(f)

@@ -46,6 +46,8 @@ CLIENT_SECRET=...
 REDIRECT_URI=https://<your-domain>/auth/callback
 UPSTASH_REDIS_REST_URL=...
 UPSTASH_REDIS_REST_TOKEN=...
+LASTFM_API_KEY=...
+LASTFM_USERNAME=...
 ```
 
 ### Setup the plugin
@@ -63,7 +65,7 @@ uvicorn main:app --reload
 ```
 
 > **Note**
-> If you update `.well-known/ai-plugin.json` or `openapi.json`, you need to
+> If you update `.well-known/ai-plugin.json` or `static/spec.json`, you need to
 > redeploy the Railway app so the public manifest reflects your changes.
 
 ### Setup ngrok
