@@ -17,4 +17,11 @@ def test_login_redirect(monkeypatch):
     qs = urllib.parse.parse_qs(parsed.query)
     assert parsed.netloc == "accounts.spotify.com"
     assert qs["redirect_uri"][0] == "https://example.com/auth/callback"
-    assert re.search(r"scope=[^&]*%20", parsed.query)
+    expected = (
+        "user-read-playback-state user-modify-playback-state "
+        "user-read-currently-playing user-read-recently-played user-top-read "
+        "playlist-read-private playlist-read-collaborative playlist-modify-public "
+        "playlist-modify-private user-library-read user-library-modify "
+        "user-follow-read user-follow-modify user-read-playback-position"
+    )
+    assert qs["scope"][0] == expected
