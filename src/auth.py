@@ -15,12 +15,20 @@ if not REDIRECT_URI:
 REDIRECT_URI = REDIRECT_URI.strip()
 
 SCOPES = (
-    "user-top-read "
-    "user-read-recently-played "
-    "user-read-currently-playing "
     "user-read-playback-state "
+    "user-modify-playback-state "
+    "user-read-currently-playing "
+    "user-read-recently-played "
+    "user-top-read "
+    "playlist-read-private "
+    "playlist-read-collaborative "
     "playlist-modify-public "
-    "playlist-modify-private"
+    "playlist-modify-private "
+    "user-library-read "
+    "user-library-modify "
+    "user-follow-read "
+    "user-follow-modify "
+    "user-read-playback-position"
 )
 
 # ---------- Internal helpers -------------------------------------------------
