@@ -79,8 +79,8 @@ class SpotifyClient:
     async def find_playlist(self, name: str):
         playlists = await self.get_user_playlists()
         for playlist in playlists:
-            if playlist["name"] == name:
-                return playlist
+            if name.lower() in playlist["name"].lower():
+                return playlist["id"]
 
         return None
 
