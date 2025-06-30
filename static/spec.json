@@ -1,0 +1,316 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Spotigen API",
+    "version": "1.0.0",
+    "description": "API for Spotigen – ChatGPT plugin to fetch favourite tracks and manage Spotify playlists."
+  },
+  "servers": [
+    {
+      "url": "https://spotigen-chat-gpt-plugin-production.up.railway.app"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "summary": "Root",
+        "operationId": "root",
+        "responses": {
+          "200": {
+            "description": "Service is up",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/logo.png": {
+      "get": {
+        "summary": "Plugin Logo",
+        "operationId": "getLogo",
+        "responses": {
+          "200": {
+            "description": "PNG logo",
+            "content": {
+              "image/png": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/.well-known/ai-plugin.json": {
+      "get": {
+        "summary": "Plugin Manifest",
+        "description": "Return the plugin manifest used by ChatGPT.",
+        "operationId": "getManifest",
+        "responses": {
+          "200": {
+            "description": "Manifest JSON",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/openapi.json": {
+      "get": {
+        "summary": "OpenAPI Document (JSON)",
+        "operationId": "getOpenapiJson",
+        "responses": {
+          "200": {
+            "description": "OpenAPI spec in JSON",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+
+    "/auth/login": {
+      "get": {
+        "summary": "OAuth Login",
+        "operationId": "login",
+        "responses": {
+          "307": {
+            "description": "Redirect to Spotify OAuth"
+          }
+        }
+      }
+    },
+
+    "/auth/callback": {
+      "get": {
+        "summary": "OAuth Callback",
+        "operationId": "callback",
+        "parameters": [
+          {
+            "name": "code",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          },
+          {
+            "name": "error",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Auth success" }
+        }
+      }
+    },
+
+    "/auth/refresh": {
+      "get": {
+        "summary": "Refresh Access Token",
+        "operationId": "refresh",
+        "responses": {
+          "200": { "description": "New access token" }
+        }
+      }
+    },
+
+    "/top_tracks": {
+      "get": {
+        "summary": "Get Top Tracks",
+        "operationId": "getTopTracks",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 5 } },
+          { "name": "time_range", "in": "query", "schema": { "type": "string", "enum": ["short_term", "medium_term", "long_term"], "default": "medium_term" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Five most‑played tracks",
+            "content": { "application/json": { "schema": {} } }
+          }
+        },
+        "security": []
+      }
+    },
+
+    "/recent": {
+      "get": {
+        "summary": "Recently Played Tracks",
+        "operationId": "recent",
+        "parameters": [
+          { "name": "limit", "in": "query", "schema": { "type": "integer", "default": 20 } }
+        ],
+        "responses": {
+          "200": { "description": "Recently played list", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": []
+      }
+    },
+
+    "/currently_playing": {
+      "get": {
+        "summary": "Current Playback",
+        "operationId": "currentlyPlaying",
+        "responses": {
+          "200": { "description": "Current track", "content": { "application/json": { "schema": {} } } },
+          "204": { "description": "No track playing" }
+        },
+        "security": []
+      }
+    },
+
+    "/play": {
+      "post": {
+        "summary": "Resume Playback",
+        "operationId": "play",
+        "responses": { "200": { "description": "Playback started" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/pause": {
+      "post": {
+        "summary": "Pause Playback",
+        "operationId": "pause",
+        "responses": { "200": { "description": "Playback paused" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/next": {
+      "post": {
+        "summary": "Skip To Next",
+        "operationId": "next",
+        "responses": { "200": { "description": "Skipped to next" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/previous": {
+      "post": {
+        "summary": "Skip To Previous",
+        "operationId": "previous",
+        "responses": { "200": { "description": "Went to previous" } },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/playlist": {
+      "get": {
+        "summary": "Get Playlist",
+        "operationId": "getPlaylist",
+        "parameters": [
+          { "name": "name", "in": "query", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Playlist found", "content": { "application/json": { "schema": {} } } },
+          "404": { "description": "Playlist not found" }
+        },
+        "security": [ { "HTTPBearer": [] } ]
+      },
+      "post": {
+        "summary": "Create Playlist",
+        "operationId": "createPlaylist",
+        "parameters": [
+          { "name": "name", "in": "query", "required": true, "schema": { "type": "string" } },
+          { "name": "public", "in": "query", "required": true, "schema": { "type": "boolean" } }
+        ],
+        "responses": {
+          "200": { "description": "Playlist created", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    },
+
+    "/playlist/{playlist_id}/tracks": {
+      "get": {
+        "summary": "Get Playlist Tracks",
+        "operationId": "getPlaylistTracks",
+        "parameters": [
+          { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Tracks list", "content": { "application/json": { "schema": {} } } }
+        },
+        "security": [ { "HTTPBearer": [] } ]
+      },
+      "post": {
+        "summary": "Add Tracks To Playlist",
+        "operationId": "addTracksToPlaylist",
+        "parameters": [
+          { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TrackTitles" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Tracks added" }
+        },
+        "security": [ { "HTTPBearer": [] } ]
+      },
+      "delete": {
+        "summary": "Remove Tracks From Playlist",
+        "operationId": "removeTracksFromPlaylist",
+        "parameters": [
+          { "name": "playlist_id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TrackURIs" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Tracks removed" }
+        },
+        "security": [ { "HTTPBearer": [] } ]
+      }
+    }
+  },
+
+  "components": {
+    "securitySchemes": {
+      "HTTPBearer": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "TrackTitles": {
+        "type": "object",
+        "required": ["titles"],
+        "properties": {
+          "titles": { "type": "array", "items": { "type": "string" } }
+        }
+      },
+      "TrackURIs": {
+        "type": "object",
+        "required": ["track_uris"],
+        "properties": {
+          "track_uris": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    }
+  }
+}
