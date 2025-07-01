@@ -2,7 +2,7 @@ import os
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
@@ -92,7 +92,7 @@ async def get_playlist(
 ):
     playlist = await spotify_client.find_playlist(name)
     if playlist is None:
-        return JSONResponse(status_code=404, content={"message": "Playlist not found"})
+        raise HTTPException(404, "Playlist not found")
     return playlist
 
 
@@ -121,7 +121,8 @@ async def add_tracks_to_playlist(
     track_titles: TrackTitles,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    await spotify_client.add_tracks_to_playlist(playlist_id, track_titles)
+    true_id = await spotify_client._playlist_id(playlist_id)
+    await spotify_client.add_tracks_to_playlist(true_id, track_titles)
     return PlainTextResponse(status_code=200)
 
 
@@ -131,7 +132,8 @@ async def remove_tracks_from_playlist(
     track_uris: TrackURIs,
     spotify_client: Annotated[SpotifyClient, Depends(get_spotify_client)],
 ):
-    await spotify_client.remove_tracks_from_playlist(playlist_id, track_uris)
+    true_id = await spotify_client._playlist_id(playlist_id)
+    await spotify_client.remove_tracks_from_playlist(true_id, track_uris)
     return PlainTextResponse(status_code=200)
 
 

@@ -76,13 +76,37 @@ class SpotifyClient:
                 playlists.append(playlist)
         return playlists
 
-    async def find_playlist(self, name: str):
+    async def find_playlist(self, name: str) -> dict | None:
         playlists = await self.get_user_playlists()
         for playlist in playlists:
             if name.lower() in playlist["name"].lower():
-                return playlist["id"]
+                return playlist
 
         return None
+
+    async def playlist_by_name(self, name: str) -> dict:
+        """Return the user's playlist matching ``name`` exactly."""
+        offset = 0
+        limit = 50
+        while True:
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{self.base_url}/me/playlists",
+                    headers=self._auth_headers(),
+                    params={"limit": limit, "offset": offset},
+                )
+            if resp.status_code == 404:
+                raise HTTPException(404, "Playlist not found")
+            if resp.status_code != 200:
+                raise HTTPException(401, "Invalid or missing access token")
+            data = resp.json()
+            for pl in data.get("items", []):
+                if pl.get("name", "").lower() == name.lower():
+                    return pl
+            if not data.get("next"):
+                break
+            offset += limit
+        raise HTTPException(404, "Playlist not found")
 
     async def create_playlist(self, name: str, public: bool):
         data = {"name": name, "public": public}
@@ -111,47 +135,12 @@ class SpotifyClient:
         with ``404`` is raised if no match can be found.
         """
 
-        # Spotify IDs are typically 22 characters without spaces.
-        if len(pid_or_name) == 22 and " " not in pid_or_name:
+        # Spotify IDs are typically 22 alphanumeric characters.
+        if len(pid_or_name) == 22 and pid_or_name.isalnum():
             return pid_or_name
 
-        user_id = await self.get_my_user_id()
-
-        # --- Browse the user's playlists (first two pages) -----------------
-        for offset in (0, 50):
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(
-                    f"{self.base_url}/me/playlists",
-                    headers=self._auth_headers(),
-                    params={"limit": 50, "offset": offset},
-                )
-            if resp.status_code >= 400:
-                raise HTTPException(status_code=resp.status_code, detail=resp.text)
-            data = resp.json()
-            for pl in data.get("items", []):
-                if (
-                    pl.get("name", "").lower() == pid_or_name.lower()
-                    and pl.get("owner", {}).get("id") == user_id
-                ):
-                    return pl["id"]
-            if not data.get("next"):
-                break
-
-        # --- Fallback search -------------------------------------------------
-        async with httpx.AsyncClient() as client:
-            resp = await client.get(
-                f"{self.base_url}/search",
-                headers=self._auth_headers(),
-                params={"type": "playlist", "q": pid_or_name, "limit": 5},
-            )
-        if resp.status_code >= 400:
-            raise HTTPException(status_code=resp.status_code, detail=resp.text)
-        results = resp.json().get("playlists", {}).get("items", [])
-        for pl in results:
-            if pl.get("owner", {}).get("id") == user_id:
-                return pl["id"]
-
-        raise HTTPException(status_code=404, detail="Playlist not found")
+        pl = await self.playlist_by_name(pid_or_name)
+        return pl["id"]
 
     async def get_tracks_from_playlist(self, playlist_id: str):
         async with httpx.AsyncClient() as client:
